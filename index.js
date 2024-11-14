@@ -7,14 +7,17 @@ function resetPage() {
 }
 
 // Function to add a comment or reply
-function addComment(parentId = null) {
-  const usernameInput = document.getElementById('username-input');
-  const commentInput = document.getElementById('new-comment-input');
-  
-  const username = usernameInput.value.trim();
-  const commentText = commentInput.value.trim();
+function addComment(parentId = null, username = null, commentText = null) {
+  if (parentId) {
+    // For replies, get the username and commentText from the reply input fields
+    username = document.getElementById(`reply-username-${parentId}`).value.trim();
+    commentText = document.getElementById(`reply-text-${parentId}`).value.trim();
+  } else {
+    // For main comments, get username and commentText from the main input fields
+    username = document.getElementById('username-input').value.trim();
+    commentText = document.getElementById('new-comment-input').value.trim();
+  }
 
-  // Validate input
   if (!username || !commentText) {
     alert("Please enter a username and a comment.");
     return;
@@ -25,7 +28,7 @@ function addComment(parentId = null) {
     username,
     text: commentText,
     replies: [],
-    isEditing: false, // For tracking if the comment is being edited
+    isEditing: false,
   };
 
   if (parentId) {
@@ -35,10 +38,15 @@ function addComment(parentId = null) {
     comments.push(newComment);
   }
 
-  // Clear inputs
-  usernameInput.value = '';
-  commentInput.value = '';
-  
+  // Clear inputs after adding the comment
+  if (parentId) {
+    document.getElementById(`reply-username-${parentId}`).value = '';
+    document.getElementById(`reply-text-${parentId}`).value = '';
+  } else {
+    document.getElementById('username-input').value = '';
+    document.getElementById('new-comment-input').value = '';
+  }
+
   renderComments();
 }
 
@@ -74,32 +82,27 @@ function deleteComment(id) {
   renderComments();
 }
 
-// Function to handle the editing of a comment or reply
+// Function to toggle editing mode for a comment or reply
 function editComment(id) {
   const comment = findCommentById(id);
-  comment.isEditing = true; // Mark as editing
-  console.log('here you are going to edit text ')
-  // Re-render to show the editing input
-  renderComments();
-}
 
-// Function to save the edited comment
-function saveEdit(id) {
-  const comment = findCommentById(id);
-  const newText = document.getElementById(`edit-input-${id}`).value.trim();
-  
-  if (newText) {
-    comment.text = newText;
-    comment.isEditing = false; // Mark as no longer editing
+  if (comment.isEditing) {
+    const newText = document.getElementById(`edit-input-${id}`).value.trim();
+    if (newText) {
+      comment.text = newText;
+    }
+    comment.isEditing = false;
+  } else {
+    comment.isEditing = true;
   }
-  
+
   renderComments();
 }
 
 // Function to render comments
 function renderComments() {
   const commentSection = document.getElementById('comment-section');
-  commentSection.innerHTML = ''; // Clear the section before re-rendering
+  commentSection.innerHTML = ''; 
   
   comments.forEach(comment => {
     const commentCard = createCommentCard(comment);
@@ -107,13 +110,12 @@ function renderComments() {
   });
 }
 
-// Create a card for each comment
+// Function to create a comment or reply card
 function createCommentCard(comment) {
   const card = document.createElement('div');
   card.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'space-y-4');
-  card.setAttribute('data-id', comment.id); // Set data-id for easy targeting
+  card.setAttribute('data-id', comment.id);
   
-  // User Avatar and Username
   const header = document.createElement('div');
   header.classList.add('flex', 'items-center', 'space-x-4');
   
@@ -129,24 +131,20 @@ function createCommentCard(comment) {
   header.appendChild(avatar);
   header.appendChild(username);
   
-  // Comment Text or Edit Input
-  const text = document.createElement('p');
-  text.classList.add('text-gray-700');
+  const textSection = document.createElement('div');
+  textSection.classList.add('text-gray-700');
   
-  // If editing, show input
   if (comment.isEditing) {
     const editInput = document.createElement('input');
     editInput.id = `edit-input-${comment.id}`;
     editInput.type = 'text';
     editInput.value = comment.text;
     editInput.classList.add('w-full', 'p-3', 'border', 'border-gray-300', 'rounded-lg');
-    
-    text.replaceWith(editInput); // Replace the text with the input
+    textSection.appendChild(editInput);
   } else {
-    text.textContent = comment.text;
+    textSection.textContent = comment.text;
   }
-  
-  // Buttons (Reply, Edit, Delete)
+
   const buttonContainer = document.createElement('div');
   buttonContainer.classList.add('flex', 'space-x-4');
   
@@ -157,7 +155,7 @@ function createCommentCard(comment) {
 
   const editButton = document.createElement('button');
   editButton.classList.add('bg-yellow-500', 'text-white', 'px-4', 'py-2', 'rounded-full', 'hover:bg-yellow-600');
-  editButton.textContent = 'Edit';
+  editButton.textContent = comment.isEditing ? 'Save' : 'Edit';
   editButton.addEventListener('click', () => editComment(comment.id));
 
   const deleteButton = document.createElement('button');
@@ -169,37 +167,6 @@ function createCommentCard(comment) {
   buttonContainer.appendChild(editButton);
   buttonContainer.appendChild(deleteButton);
 
-  // Reply Input Section (only shown when replying)
-  const replyInputSection = document.createElement('div');
-  replyInputSection.classList.add('mt-4', 'hidden');
-  replyInputSection.setAttribute('data-id', comment.id); // Set parent ID to reply
-  
-  const replyUsernameInput = document.createElement('input');
-  replyUsernameInput.type = 'text';
-  replyUsernameInput.placeholder = 'Your name';
-  replyUsernameInput.classList.add('w-full', 'p-3', 'border', 'border-gray-300', 'rounded-lg');
-  
-  const replyTextInput = document.createElement('input');
-  replyTextInput.type = 'text';
-  replyTextInput.placeholder = 'Write a reply...';
-  replyTextInput.classList.add('w-full', 'p-3', 'border', 'border-gray-300', 'rounded-lg');
-
-  const addReplyButton = document.createElement('button');
-  addReplyButton.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-full', 'hover:bg-blue-600');
-  addReplyButton.textContent = 'Add Reply';
-  addReplyButton.addEventListener('click', () => addReply(comment.id, replyUsernameInput.value, replyTextInput.value));
-  
-  const cancelReplyButton = document.createElement('button');
-  cancelReplyButton.classList.add('bg-gray-500', 'text-white', 'px-4', 'py-2', 'rounded-full', 'hover:bg-gray-600');
-  cancelReplyButton.textContent = 'Cancel';
-  cancelReplyButton.addEventListener('click', hideReplyInput);
-
-  replyInputSection.appendChild(replyUsernameInput);
-  replyInputSection.appendChild(replyTextInput);
-  replyInputSection.appendChild(addReplyButton);
-  replyInputSection.appendChild(cancelReplyButton);
-  
-  // Replies Section (if any)
   const repliesSection = document.createElement('div');
   repliesSection.classList.add('ml-10');
   comment.replies.forEach(reply => {
@@ -208,9 +175,8 @@ function createCommentCard(comment) {
   });
   
   card.appendChild(header);
-  card.appendChild(text);
+  card.appendChild(textSection);
   card.appendChild(buttonContainer);
-  card.appendChild(replyInputSection);
   card.appendChild(repliesSection);
   
   return card;
@@ -219,44 +185,41 @@ function createCommentCard(comment) {
 // Show input field for replying to a comment
 function showReplyInput(commentId) {
   const commentCard = document.querySelector(`[data-id="${commentId}"]`);
-  const replyInputSection = commentCard.querySelector('[data-id]');
-  replyInputSection.classList.remove('hidden');
-}
 
-// Hide the reply input field
-function hideReplyInput() {
-  const allReplySections = document.querySelectorAll('.mt-4');
-  allReplySections.forEach(section => {
-    section.classList.add('hidden');
-  });
-}
+  let replyInputSection = commentCard.querySelector('.reply-input-section');
+  if (!replyInputSection) {
+    replyInputSection = document.createElement('div');
+    replyInputSection.classList.add('reply-input-section', 'space-y-2', 'mt-2');
+    
+    const replyUsernameInput = document.createElement('input');
+    replyUsernameInput.id = `reply-username-${commentId}`;
+    replyUsernameInput.type = 'text';
+    replyUsernameInput.placeholder = 'Your name';
+    replyUsernameInput.classList.add('w-full', 'p-2', 'border', 'rounded-lg');
 
-// Add a reply to a comment
-function addReply(parentId, username, text) {
-  if (!username.trim() || !text.trim()) {
-    alert("Please enter a valid reply.");
-    return;
+    const replyTextInput = document.createElement('input');
+    replyTextInput.id = `reply-text-${commentId}`;
+    replyTextInput.type = 'text';
+    replyTextInput.placeholder = 'Your reply';
+    replyTextInput.classList.add('w-full', 'p-2', 'border', 'rounded-lg');
+
+    const replyButton = document.createElement('button');
+    replyButton.classList.add('bg-green-500', 'text-white', 'px-4', 'py-2', 'rounded-full', 'hover:bg-green-600');
+    replyButton.textContent = 'Reply';
+    replyButton.addEventListener('click', () => {
+      addComment(commentId);
+    });
+
+    replyInputSection.appendChild(replyUsernameInput);
+    replyInputSection.appendChild(replyTextInput);
+    replyInputSection.appendChild(replyButton);
+
+    commentCard.appendChild(replyInputSection);
   }
-
-  const parentComment = findCommentById(parentId);
-  const newReply = {
-    id: Date.now(),
-    username,
-    text,
-    replies: [],
-    isEditing: false,
-  };
-
-  parentComment.replies.push(newReply);
-  hideReplyInput();
-  renderComments();
 }
 
-// Event listener for the "Add Comment" button
+// Event listeners
 document.getElementById('add-comment-btn').addEventListener('click', () => addComment());
-
-// Event listener for the "Reset" button
 document.getElementById('reset-btn').addEventListener('click', resetPage);
 
-// Initial call to render comments on page load
 renderComments();
