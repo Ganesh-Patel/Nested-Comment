@@ -4,18 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nested Comment Section</title>
-  <script src="./index.js" defer></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 p-8">
-  <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-    <h1 class="text-2xl font-bold mb-4">Comments</h1>
-    <div id="comment-section" class="space-y-4"></div>
-    <textarea id="new-comment-input" class="w-full p-2 border rounded mt-4" placeholder="Write a comment..." maxlength="250"></textarea>
-    <div class="flex items-center justify-between mt-2">
-      <span id="char-counter" class="text-sm text-gray-500">250 characters left</span>
-      <button onclick="addComment()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Comment</button>
+<body class="bg-gray-100">
+
+  <!-- Header Section -->
+  <header class="bg-blue-600 text-white p-4 shadow-md">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 class="text-3xl font-bold">Nested Comment</h1>
+      <button onclick="resetPage()" class="bg-gray-700 px-4 py-2 rounded-full text-white hover:bg-red-600">Reset</button>
     </div>
+  </header>
+
+  <!-- Comment Section -->
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow mt-8">
+    <h2 class="text-2xl font-bold mb-4">Leave a Comment</h2>
+    
+    <!-- Comment Input Area -->
+    <div class="flex flex-col space-y-4">
+      <textarea id="new-comment-input" class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Write a comment..." maxlength="250"></textarea>
+      <div class="flex justify-between items-center">
+        <span id="char-counter" class="text-sm text-gray-500">250 characters left</span>
+        <button onclick="addComment()" class="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition">Add Comment</button>
+      </div>
+    </div>
+    
+    <!-- Comments Display -->
+    <div id="comment-section" class="space-y-6 mt-6"></div>
   </div>
+
+  <script src="./index.js" defer></script>
 </body>
 </html>
